@@ -122,3 +122,37 @@ origin servers, they just send the req to LB/CDN.
 Every CDN is a layer 7 reverse proxy.
 
 ## 7. Host to Host communication
+Why did we invent Mac addresses, IP addresses and ports?
+
+This lecture is mostly about layer 2 & a bit 3.
+
+Even the virtual machines have virtual mac address.
+
+The lowest level of communication addr is mac address.
+
+When all hosts are connected to each other, it's called a mesh network.
+
+- a lot of wasted resources
+- security-wise dangerous: This is actually what happens in public network conn like wifis which are a form of mesh.
+When a host sends frames, every host in wifi mesh get it. So a sniffer can get the packet and see it. So this is how network sniffing works,
+
+The mac addresses are random, we need addresses that give us information about where to send a msg and where not to. We need routability.
+That's why we invented IP address.
+
+Router routes packets between two networks. It's a layer 3 device. Therefore, it needs to inspect the IP packets to see the IP addresses
+in order to route.
+
+IP addr is 4 bytes.
+
+How do we determine the network section in an IP addr?
+
+> In an IP addr like 192.168.1.0/24 , the first 24 bits (out of 32 total bits in an IPv4 address) are used for the network portion. 
+> The remaining 8 bits are used for the host portion.
+
+The router knows exactly where the machine is and will send the msg only to that machine.
+
+### Subnet mask
+A subnet mask is a 32-bit number (for IPv4) used to divide an IP address into two parts:
+
+### Port
+> To find which app(process) on a single host is looking for a msg, we need another fine-grained level of control beside the mac addr and ip addr.
