@@ -144,6 +144,8 @@ in order to route.
 
 IP addr is 4 bytes.
 
+NOTE: localhost is an IP address that is loopback. When we use it, the msg won't leave the machine.
+
 How do we determine the network section in an IP addr?
 
 > In an IP addr like 192.168.1.0/24 , the first 24 bits (out of 32 total bits in an IPv4 address) are used for the network portion. 
