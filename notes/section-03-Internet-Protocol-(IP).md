@@ -79,10 +79,68 @@ When sender gets back an ICMP echo reply packet, it means the packet fully reach
 NOTE: TTL is not decremented if sender sends IP packets to a host in the **same** network.
 
 # 11. ARP
+- We need DNS to map hostname to IP addr.
+- We need ARP to map IP addr to mac addr.
+
+ARP is layer 2 protocol. Although it finds an IP addr of a mac addr, the ip addr only goes into the data segment of the frame. ARP
+doesn't do anything with it.
+
+NOTE: The ip addr of network's gateway is baked into every host in the network.
+
+When a host sends an ARP req to find the mac addr of gateway using it's ip addr, some malicious host can fake that and answer: Yeah the gateway is me!
+This is `ARP poisoning`.
 
 # 12. Capturing IP, ARP and ICMP Packets with TCPDUMP
+A machine could have many network interfaces, one for wifi, one for LAN, one for docker container, we can also create virtual interfaces.
+`ifconfig` shows the network interfaces.
+
+```shell
+# -i flag specifies the network interface that we wanna capture packets on. An example is en0
+# `arp` is the protocol we wanna capture the packets for
+sudo tcpdump -i en0 arp
+
+# tcpdump by default shows hostnames. We wanna see the ip addresses, so use -n flag:
+sudo tcpdump -n -i en0 arp
+```
+
+```shell
+sudo tcpdump -n -i en0 icmp
+
+# now in another terminal tab, do this to send an icmp packet and capture it in the first terminal window:
+ping google.com
+```
+
+```shell
+# capture ip packets coming FROM this ip(not packets going TO this ip).
+sudo tcpdump -n -i en0 src 93.184.216.34
+
+# also capture packets that are going TO x
+sudo tcpdump -n -i en0 src 93.184.216.34 or dst x
+```
 
 # 13. Routing Example
+NOTE: When all machines in a network power up, they all send a msg with their MAC addr to switch.
+
+NOTE: The hosts know the ip of router by using the DHCP protocol, but the mac addr of router is not known. Host will get the mac addr using
+ARP by sending the ip of the router which it had before from DHCP.
+
+NOTE: Switch doesn't broadcast the packets to all hosts, just the host that the packet is destined to.
+
+NOTE: But the hub is dumb. It replicates the packet to all hosts. Waste pf bandwidth. So switch is smarter.
+
+NOTE: The final destination of a packet is different based on the perspective of each layer. For example, layer 2 destination of a router
+could be the router, but layer 3 dest is a host on a different network. When the router receives the packet, it will inspect the layer 3 data
+which is the ip and will send that packet by setting a new MAC addr and ... .
+
+There are three general types of routing based on the destination of the packet:
+1. Local Routing (Same Network): The destination is on the same local network (same subnet), so the packet is delivered directly
+using the switch without involving a router.
+2. Internal Routing (Different Local Networks): The destination is on a different local network, but still within the same 
+organization or private network. First goes to router then router (or default gateway) is used to forward the packet to that other network.
+3. External Routing (Internet or Public Network): The destination is outside the local/private network, such as a website or
+cloud service on the Internet. The packet is sent to the switch, then router connected to the Internet, router uses it's public IP addr
+to sendign the packet to internet, then changes the source IP addr of the packet to it's own IP public IP addr(so the source IP is no longer
+the host on our private network), then sends the packet forward.
 
 # 14. Quick Quiz - IP
 

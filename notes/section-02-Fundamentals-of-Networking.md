@@ -57,9 +57,10 @@ In Sender:
 1. You go to application,
 2. then presentation,
 3. then session,
-4. then in transport, we convert it into the `source port + content + destination port`.
-5. in network layer, it's shoved into an IP packet in this format: `source ip addr + all prev stuff + destination ip addr`.
-6. data link layer: the whole IP packet is shoved into a frame(it must fit into one frame) in this format: `source mac addr + prev stuff + destination mac addr`.
+4. then in transport, we convert it into the `source port + data + destination port`.
+5. in network layer, it's shoved into an IP packet in this format: `source ip addr + data(all prev stuff) + destination ip addr`.
+The ports will also be part of the data.
+6. data link layer: the whole IP packet is shoved into a frame(it must fit into one frame) in this format: `source mac addr + data + destination mac addr`.
 7. physical layer: it's converted into physical radio waves or ...
 
 In receiver: 
