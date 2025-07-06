@@ -9,7 +9,7 @@ is in the same network as us.
 
 But if receiver is not in the same subnet, we need to talk to someone who knows how to route this packet(usually called router or gateway).
 
-### Default gateway
+## Default gateway
 The gateway has two network interfaces. One for internal network(or subnet - if you consider logical networks),
 one for an external network. Note that there could be multiple external interfaces to talk to multiple external networks.
 
@@ -46,15 +46,44 @@ it sets ECN to true and processes the packet. Then the receiver receives the pac
 be multiple routes in the path) experienced congestion and will reply back to the sender with the same ECN=true. So everyone will know
 eventually that there was a congestion(without any packets being dropped).
 
-## 10. ICMP, PING, TraceRoute
+# 10. ICMP, PING, TraceRoute
+## ICMP
+ICMP leaves in layer 3. So only source & destination IPs, no ports.
 
-## 11. ARP
+When you send a packet to a host that does not exist, we get an ICMP msg back!
 
-## 12. Capturing IP, ARP and ICMP Packets with TCPDUMP
+There's no port to listen to get the ICMP msgs. You can send & receive an ICMP msg anytime you want as long as the host itself
+enables ICMP(IP packets with protocol set to ICMP).
 
-## 13. Routing Example
+The ping command sends an ICMP Echo Request packet, which is encapsulated within an IP packet. In the IP header, the protocol field is set to ICMP (value 1).
+While ICMP packets are IP packets, not all IP packets are ICMP.
 
-## 14. Quick Quiz - IP
+NOTE: The data we send in TCP 3-way handshake is tiny. 
 
+TCP Blackhole: The TCP conn is established, because the IP packets are tiny. But the moment sender starts sending real data and 
+it specifies: "don't fragment". Now the MTU is small and we need to fragment but we don't because we specified no fragmentation.
+Now in normal cases, the router will try send you an ICMP msg saying: Your IP packet is large for my MTU, make it smaller.
+But in TCP blackhole, the ICMP is blocked. So sender will never get the ICMP msg. So it sees the TCP conn is open but no data
+is going through.
 
-## 15. Private IP addresses (Alaska Airlines WIFI example)
+## TraceRoute
+It starts with TTL of 1 for an IP packet, get the ICMP dest not reachable back with the router that sent back this ICMP. So know we know the
+very first router in our path. Then it increments TTL to 2, so it will survive the first router but won't pass the second router and
+will get back ICMP dest not reachable from the second router. So know we know the IP addr of second router and 
+continue doing this until all hop IP addresses are known.
+
+TraceRoute is not 100% correct, because the results of these IP packets might be different.
+
+When sender gets back an ICMP echo reply packet, it means the packet fully reached it's destination.
+
+NOTE: TTL is not decremented if sender sends IP packets to a host in the **same** network.
+
+# 11. ARP
+
+# 12. Capturing IP, ARP and ICMP Packets with TCPDUMP
+
+# 13. Routing Example
+
+# 14. Quick Quiz - IP
+
+# 15. Private IP addresses (Alaska Airlines WIFI example)
