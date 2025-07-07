@@ -106,7 +106,7 @@ sudo tcpdump -n -i en0 arp
 ```shell
 sudo tcpdump -n -i en0 icmp
 
-# now in another terminal tab, do this to send an icmp packet and capture it in the first terminal window:
+# now in another terminal tab, do, this to send an icmp packet and capture it in the first terminal window:
 ping google.com
 ```
 
@@ -119,6 +119,8 @@ sudo tcpdump -n -i en0 src 93.184.216.34 or dst x
 ```
 
 # 13. Routing Example
+Router is layer 3. They route packets to different networks(including the internet).
+
 NOTE: When all machines in a network power up, they all send a msg with their MAC addr to switch.
 
 NOTE: The hosts know the ip of router by using the DHCP protocol, but the mac addr of router is not known. Host will get the mac addr using
@@ -133,11 +135,11 @@ could be the router, but layer 3 dest is a host on a different network. When the
 which is the ip and will send that packet by setting a new MAC addr and ... .
 
 There are three general types of routing based on the destination of the packet:
-1. Local Routing (Same Network): The destination is on the same local network (same subnet), so the packet is delivered directly
+1. **Local Routing (Same Network):** The destination is on the same local network (same subnet), so the packet is delivered directly
 using the switch without involving a router.
-2. Internal Routing (Different Local Networks): The destination is on a different local network, but still within the same 
+2. **Internal Routing (Different Lo cal Networks):** The destination is on a different local network, but still within the same 
 organization or private network. First goes to router then router (or default gateway) is used to forward the packet to that other network.
-3. External Routing (Internet or Public Network): The destination is outside the local/private network, such as a website or
+3. **External Routing (Internet or Public Network):** The destination is outside the local/private network, such as a website or
 cloud service on the Internet. The packet is sent to the switch, then router connected to the Internet, router uses it's public IP addr
 to sendign the packet to internet, then changes the source IP addr of the packet to it's own IP public IP addr(so the source IP is no longer
 the host on our private network), then sends the packet forward.
@@ -145,3 +147,10 @@ the host on our private network), then sends the packet forward.
 # 14. Quick Quiz - IP
 
 # 15. Private IP addresses (Alaska Airlines WIFI example)
+NOTE: IPV4 is 32 bit. So each segment(between dots) is 8 bits, meaning each segment can go up to 255.
+
+The private IP addrs are well-known and there's a list of them. If they're detected on the public internet, their packets will be dropped.
+They only make sense in local configuration. The list is:
+- 10.0.0.0 - 10.255.255.255
+- 172.16.0.0 - 172.31.255.255
+- 192.168.0.0 - 192.168.255.255
