@@ -41,7 +41,8 @@ it can't accept new packets, so it has to drop incoming packets. This is called 
 For a long time, routers would always drop the packets in case of their memory buffer was full. They even don't send back an ICMP msg.
 Now the client says: Ok, my packet is timed out because I didn't see an acknowledgment. So I'm gonna assume it was dropped and there
 was congestion. But there's a lot of waste here because the timeout is so long. So we need better communication.
-Meet ECN. When the buffer of router is **about to**(not completely filled) fills up, the router won't drop the incoming packets instead,
+
+Meet `ECN`. When the buffer of router is **about to**(not completely filled) fills up, the router won't drop the incoming packets instead,
 it sets ECN to true and processes the packet. Then the receiver receives the packet with ECN=true and say: Oh some of the router(there could
 be multiple routes in the path) experienced congestion and will reply back to the sender with the same ECN=true. So everyone will know
 eventually that there was a congestion(without any packets being dropped).

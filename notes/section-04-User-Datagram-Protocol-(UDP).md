@@ -31,6 +31,8 @@ We need DNS to translate hostnames to ip addrs, since we can't send IP packets t
 NOTE: Everytime you have a mapping(like hostname to ip addr, ip addr tp mac addr), you have poisoning. So we have DNS poisoning,
 ARP poisoning. DNS poisoning means: Someone intercepts the UDP datagrams and change the destination of them to somewhere else.
 
+So DNS protocol usually uses udp. So the dns req fits inside udp datagrams.
+
 ### Multiplexing & demultiplexing
 #### What Would Happen Without Multiplexing?
 - **Single Application Per Device Per Protocol**: Only one application or process could use 
@@ -70,7 +72,7 @@ The identifiers:
   - Source port number
   - Destination port number
 
-Demultiplexing is the reverse process: received data is directed to the correct application based on these identifiers
+`Demultiplexing` is the reverse process: received data is directed to the correct application based on these identifiers
 
 Both TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) support multiplexing, which allows multiple
 applications or processes to use the network simultaneously without interfering with each other.
@@ -103,6 +105,10 @@ When a TCP packet is lost, all HTTP/2 streams on that connection must wait for r
 make the problem worse than HTTP/1.1’s multiple connections approach
 
 # 17. User Datagram Structure
+Each udp packet is identified with source port + destination port. So at most, we can spin up about 65000 conns.
+
+NOTE: It's very unlikely that a bit changed(because of voltage fluctuations or ...) and the checksum also changed in a way that
+at the end, the result is still correct! So checksum helps us with integrity of packets.
 
 # 18. UDP Pros & Cons
 
