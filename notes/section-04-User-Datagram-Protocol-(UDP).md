@@ -111,5 +111,20 @@ NOTE: It's very unlikely that a bit changed(because of voltage fluctuations or .
 at the end, the result is still correct! So checksum helps us with integrity of packets.
 
 # 18. UDP Pros & Cons
+No ack means we don't know the thing we sent was received or not. So for DB apps we can't use UDP otherwise you'll corrupt the DB
+because there's no ack and guarantee of delivery and order.
+
+Anyone can send any UDP packets at any moment they want. That's why UDP is used in attacks a lot, like DNS flooding attack.
+Since UDP is stateless, the server being attacked **has to** process every UDP packet, it doesn't know hey this source IP talked to me before.
+
+DNS flooding: sending udp datagrams to dns servers and forging the source IP to the victim's IP. Then the dns servers will reply back
+to the victim and the victim's host has to process them and it will eventually go down. So the connectionless attr of UDP could hurt.
+
+Flow control: manages the transmission rate of data between a sender and receiver to prevent buffer overflow.
+It allows the receiver to control how much data the sender can transmit before requiring an acknowledgment,
+preventing the sender from overwhelming the receiver with more data than it can process.
+
+UDP can be easily spoofed since there's no prior conn(handshake). TCP first requires a conn, we can't just send data through TCP, the
+receiver will say: I don't have a conn with you, it's gonna drop it.
 
 # 19. Sockets, Connections and Kernel Queues
