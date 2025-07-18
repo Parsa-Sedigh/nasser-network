@@ -128,3 +128,75 @@ UDP can be easily spoofed since there's no prior conn(handshake). TCP first requ
 receiver will say: I don't have a conn with you, it's gonna drop it.
 
 # 19. Sockets, Connections and Kernel Queues
+One machine can have more than one IP addr. In every machine, we have multiple network interface cards(NIC). Each NIC has it's own IP addr.
+In addition to multiple NICs, we can create unlimited virtual NICs.
+
+Security warning: Do not listen to all network interfaces which is done by listening to `0.0.0.0` in IPV4 or `[::]` in IPV6.
+Hackers scan the whole web looking for ip ranges + default ports for things like mongodb, elasticsearch and they will find vulnerable
+hosts.
+
+## TCP Server Connection Flow
+- 🔧 Server Setup
+  1. socket(): kernel creates a new TCP socket
+  2. bind(): Bind socket to an IP address and port (e.g. 0.0.0.0:8080)
+  3. listen(backlog)
+     - Put socket in passive (listening) mode
+     - Kernel creates two queues: SYN queue -> for half-open (incomplete) connections. Accept queue -> for fully established connections.
+       The size of these queues(actually hash tables) are specified by the `backlog`
+- 📞 Client Connects
+  4. Client sends SYN packet
+     - is added to SYN queue
+     - server replies with SYN-ACK
+  5. Client replies with ACK -> TCP 3-way handshake is complete
+  6. Connection is moved from SYN queue to Accept queue
+    - Now the connection is considered established
+    - **But server application can't see it yet**
+- 🧠 Server Application Accepts
+  7. Server calls accept(), entry is removed from accept queue, accept() returns a **new** socket(connfd). Now the application gets a
+     connection which is a file descriptor that lives in whichever process called accept().
+     The socket represents the established TCP connection. This socket now has:
+     - send queue: buffers app -> kernel -> network
+     - receive queue: buffers network -> kernel -> app
+  8. Server and client can now read/write data
+
+NOTE: Client also has its own send/receive queues.
+
+accept() creates a file descriptor of conn and copies it from the kernel space to the user's space so we can use.
+
+NOTE: If accept() is called but the accept queue is empty, we're blocked, that's why accept() is a candidate for asynchronous IO.
+
+NOTE: There are 4 queues per accepted conns: 1. syn 2. accept 3. send 4. receive.
+
+NOTE: Malicious clients can send a lot of SYNs to server and server will respond back with SYN/ACK but client won't continue by sending ACK.
+This is a DOS attack. This has been solved with SYN cookies.
+
+NOTE: There are different file descriptors for listening socket and for actual accepted conns. Each new conn gets it's own file descriptor.
+
+## Socket sharding
+Used to scale acceptance of conns.
+
+By default, only one core is actively handling incoming TCP connections — unless you explicitly design your server or 
+use features like `SO_REUSEPORT` or a multi-threaded model.
+
+Different parallelism involved for handling incoming conns:
+1. Single Threaded Server: If your server runs a single accept() loop in a single thread, then:
+    - It runs on one core
+    - All TCP connection handling happens by one core
+    - Even if your machine has 8 or 64 cores — only one core is used by the server’s main accept loop
+    - This is the default behavior in many simple server implementations(especially in learning examples or old designs)
+2. Multi-Threaded Server **Without Sharding**
+    - All threads call accept() on the same socket
+    - The kernel by default, uses a lock internally. So only one thread at a time can be woken up to handle a connection.
+      Therefore, there are a lot of lock contention.
+    - You get some parallelism, but still limited by lock contention. Only one thread is doing work at the same time.
+3. Multi-Threaded Server with Socket Sharding (`SO_REUSEPORT`)
+    - Each thread creates its own socket
+    - All sockets bind to the same IP:PORT by setting `SO_REUSEPORT`
+    - The kernel load balances connections across the sockets → which maps nicely to one thread per core(best utilization of CPU cores is one thread per core)
+
+
+# 20. UDP Server with Javascript using NodeJS
+
+# 21. UDP Server with C
+
+# 22. Capturing UDP traffic with TCPDUMP
