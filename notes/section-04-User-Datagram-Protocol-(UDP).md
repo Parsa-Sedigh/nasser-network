@@ -194,8 +194,12 @@ Different parallelism involved for handling incoming conns:
     - All sockets bind to the same IP:PORT by setting `SO_REUSEPORT`
     - The kernel load balances connections across the sockets → which maps nicely to one thread per core(best utilization of CPU cores is one thread per core)
 
-
 # 20. UDP Server with Javascript using NodeJS
+```shell
+# netcat
+# -u makes it udp
+nc -u 127.0.0.1 5500
+```
 
 # 21. UDP Server with C
 
