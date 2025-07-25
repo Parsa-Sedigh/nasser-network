@@ -204,3 +204,83 @@ nc -u 127.0.0.1 5500
 # 21. UDP Server with C
 
 # 22. Capturing UDP traffic with TCPDUMP
+Let's capture UDP packets with tcpdump!
+
+The most popular UDP protocol is DNS.
+
+```shell
+# since we're using google's DNS server to find the IP addr of domains, we filter on the IP of google's DNS server
+# which is 8.8.8.8 whether it was a packet that we sent or we received
+tcpdump -n -v -i en0 src 8.8.8.8 or dst 8.8.8.8
+```
+
+Now in another terminal window, do dns query using nslookup
+```shell
+# nslookup <what domain you wanna get it's IP?> <what dns resolver you wanna use for this?>
+nslookup husseinnasser.com 8.8.8.8
+```
+
+This tcpdump log captures a sequence of four network packets related to DNS queries and responses for resolving the domain 
+husseinnasser.com:
+
+> 10:19:33.316051 IP (tos 0x0, ttl 64, id 30377, offset 0, flags [none], proto UDP (17), length 63)
+    192.168.1.105.57772 > 8.8.8.8.53: 58479+ A? husseinnasser.com. (35)
+> 
+> 10:19:33.671284 IP (tos 0x0, ttl 113, id 32293, offset 0, flags [none], proto UDP (17), length 127)
+    8.8.8.8.53 > 192.168.1.105.57772: 58479 4/0/0 husseinnasser.com. A 216.239.38.21, husseinnasser.com. A 216.239.36.21, husseinnasser.com. A 216.239.32.21, husseinnasser.com. A 216.239.34.21 (99)
+> 
+> 10:19:33.673450 IP (tos 0x0, ttl 64, id 48830, offset 0, flags [none], proto UDP (17), length 63)
+    192.168.1.105.50824 > 8.8.8.8.53: 57091+ AAAA? husseinnasser.com. (35)
+> 
+> 10:19:34.040911 IP (tos 0x80, ttl 114, id 61744, offset 0, flags [none], proto UDP (17), length 123)
+    8.8.8.8.53 > 192.168.1.105.50824: 57091 0/1/0 (95)
+
+There are 4 packets in the flow and are explained below:
+
+Packet-by-Packet Explanation:
+### Packet 1: DNS Query for A Record
+- Timestamp: 10:19:33.316051 – Packet captured at 10:19:33 AM.
+- IP Headers: IPv4, Type of Service (ToS) 0 so default, no special priority, TTL 64 (local network) - this is standard for local networks, ID 30377, no fragmentation, UDP protocol, 63 bytes.
+- Source/Destination: Local device 192.168.1.105 on ephemeral port 57772 queries Google’s DNS server 8.8.8.8 on port 53 (DNS).
+- DNS Payload: Query ID 58479, recursion desired (+), type A (IPv4 address) for husseinnasser.com, payload 35 bytes.
+- Summary: The local device initiates a DNS query to resolve the IPv4 address of husseinnasser.com.
+
+### Packet 2: DNS Response for A Record
+- Timestamp: 10:19:33.671284 – Response received ~355ms later.
+- IP Headers: IPv4, ToS 0, TTL 113 (reduced from Google’s network), ID 32293, UDP, 127 bytes.
+- Source/Destination: Google’s DNS server 8.8.8.8 responds to 192.168.1.105 on port 57772.
+- DNS Payload: Query ID 58479 (matches query), 4 answers, 0 authority records, 0 additional records. 
+Returns four A records for husseinnasser.com: 216.239.38.21, 216.239.36.21, 216.239.32.21, 216.239.34.21. Payload 99 bytes.
+- Summary: Google’s DNS server responds with four IPv4 addresses for husseinnasser.com, completing the A record query.
+
+NOTE:
+- `proto UDP (17)` – So uses UDP protocol (common for DNS). So **UDP protocol number is 17**.
+- At 192.168.1.105.57772 , the 57772 part is the port. UDP and TCP are layer 4 so they know the concept of ports. 
+- In this example, 57772 is the source port. Why do we need the source port? Because we need a way for the receiver to reply back to us and
+if it just replied without specifying the port, we won't know which app this packet is.
+
+Q: Why we need dns query id (like 58479+)?
+
+A: Since UDP is stateless, we need a tag or unique identifier that the sender sets and sends in the UDP packets. Now when the 
+receiver replies back, they give us this number again. So know the response belongs to that query. 
+Why not just use the `<source IP>:<source port>` combination as the query id? You can but not reliable in a NAT environment.
+
+### Packet 3: DNS Query for AAAA Record
+- Timestamp: 10:19:33.673450 – Sent ~2ms after the A response.
+- IP Headers: IPv4, ToS 0, TTL 64, ID 48830, UDP, 63 bytes.
+- Source/Destination: 192.168.1.105 on port 50824 queries 8.8.8.8 on port 53.
+- DNS Payload: Query ID 57091, recursion desired, type AAAA (IPv6 address) for husseinnasser.com, payload 35 bytes.
+- Summary: The local device queries the IPv6 address of husseinnasser.com.
+
+### Packet 4: DNS Response for AAAA Record
+- Timestamp: 10:19:34.040911 – Response received ~367ms later.
+- IP Headers: IPv4, ToS 0x80 (possibly prioritized), TTL 114, ID 61744, UDP, 123 bytes.
+- Source/Destination: 8.8.8.8 responds to 192.168.1.105 on port 50824.
+- DNS Payload: Query ID 57091, 0 answers, 1 authority record, 0 additional records, payload 95 bytes. Indicates no AAAA records exist for husseinnasser.com.
+- Summary: Google’s DNS server responds that husseinnasser.com has no IPv6 addresses, with an authority record (likely a SOA or NS record).
+
+### Overall Interaction
+1. The local device (192.168.1.105) sends an A query for husseinnasser.com to Google’s DNS server (8.8.8.8).
+2. The server responds with four IPv4 addresses. 
+3. The device immediately sends an AAAA query to check for IPv6 addresses. 
+4. The server responds that no IPv6 addresses exist.
